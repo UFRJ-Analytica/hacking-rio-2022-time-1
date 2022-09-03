@@ -2,13 +2,32 @@
   <v-app>
     <v-main>
       <v-toolbar color="#08649c">
-        <!-- <a href="link">
-          <img src="logo" height="100px" alt="UFRJ Analytica" />
-        </a> -->
+        <v-btn v-if="$route.path === '/home'" icon left @click="to">
+          <v-icon>mdi-logout</v-icon>
+        </v-btn>
+        <v-btn
+          v-else-if="$route.path !== '/'"
+          icon
+          left
+          @click="to"
+        >
+          <v-icon>mdi-arrow-left</v-icon>
+        </v-btn>
+        <v-btn
+          v-else
+          disabled
+          icon
+          left
+        >
+        </v-btn>
         <v-spacer></v-spacer>
+        <a href="https://oceanpact.com/">
+          <img src="../static/marca-removebg-preview.png" height="50px" alt="Oceanpact" />
+        </a>
+        
 
-        <v-toolbar-title style="color: white; font-weight: bold">
-        HACKINGRIO 2022
+        <v-toolbar-title style="color: white">
+        TurtleHead
         </v-toolbar-title>
 
 
@@ -25,7 +44,7 @@
                     height="40px"
                     alt="UFRJ Analytica"
                     /> -->
-            <img src="/branco_com_brasao.png" height="50px" alt="UFRJ Analytica" />
+            <img src="/branco_com_brasao.png" height="25px" alt="UFRJ Analytica" />
           </a>
       </v-col>
     </v-footer>
@@ -36,4 +55,32 @@
 a {
   color: #696969;
 }
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100% - 65px);
+}
+.v-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100% - 65px);
+}
 </style>
+
+<script>
+  export default {
+  data() {
+    return {};
+  },
+  methods: {
+    to() {
+      this.$router.go(-1);
+    },
+  },
+};
+</script>
