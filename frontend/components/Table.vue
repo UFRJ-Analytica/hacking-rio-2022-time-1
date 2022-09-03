@@ -109,7 +109,6 @@
               :range="true"
               initial-date=""
               text="Intervalo de datas"
-              :disabled="!!ID"
               @onSelectedDate="
                 (value) => {
                   this.date = value;
