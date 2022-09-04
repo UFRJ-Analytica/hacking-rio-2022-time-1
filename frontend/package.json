@@ -17,6 +17,9 @@
     "@nuxtjs/pwa": "^3.3.5",
     "core-js": "^3.15.1",
     "nuxt": "^2.15.7",
+    "vue-geolocation-api": "^0.1.21",
+    "vue-plotly": "^1.1.0",
+    "vue2-google-maps": "^0.10.7",
     "vuetify": "^2.5.5"
   },
   "devDependencies": {

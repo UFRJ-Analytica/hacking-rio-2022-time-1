@@ -27,7 +27,8 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
-    { src: '~/plugins/vue-plotly.js', mode: 'client' }
+    { src: '~/plugins/vue-plotly.js', mode: 'client' },
+    { src: '~/plugins/vue-maps.js', mode: 'client' }
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -41,11 +42,15 @@ export default {
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
-    '@nuxtjs/axios'
+    '@nuxtjs/axios',
+    'vue-geolocation-api/nuxt'
   ],
   // Axios Config
   axios: {
     baseURL: 'http://localhost:5000'
+  },
+  geolocation: {
+    // watch: true
   },
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {

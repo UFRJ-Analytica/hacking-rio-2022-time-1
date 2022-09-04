@@ -24,7 +24,6 @@
            
                     <v-btn @click="$router.push('/home')">Vamos começar?</v-btn>
             </v-row>
-    
 
     </v-container>
 </template>
