@@ -98,6 +98,7 @@ def submit_sample():
                    ultimo_encontro=request_data["photo_date"],
                    forma="[1, 2, 3]",
                 )
+
         try:
             session.add(
                obj
@@ -109,11 +110,7 @@ def submit_sample():
             session.commit()
             session.refresh(obj)
             
-
-    
     with Session(database) as session:
-        teste="teste"
-
         try:
             session.add(
                 model.classes.encontro(
@@ -126,14 +123,14 @@ def submit_sample():
                 )
             )
         except:
-            raise
             session.rollback()
+            raise
         else:
             session.commit()
+
     return {
         "status": 200
     }
-
 
 
 # Get all samples names
@@ -149,6 +146,7 @@ def samples_names():
     for sample in results:
         samples_list.append(sample.nome)
     samples_list.sort()
+    
     return {
         "nomes": samples_list
     }
