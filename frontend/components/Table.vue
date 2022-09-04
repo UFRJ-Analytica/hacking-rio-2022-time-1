@@ -151,7 +151,7 @@ export default {
       date: "",
       nome: "",
       menu: false,
-      nomes: ["Rafael", "Ana"],
+      nomes: [],
       pags: {},
       headers: [
         { text: "Nome", value: "nome", align: "center" },
@@ -191,8 +191,9 @@ export default {
     this.identificadores_ufs = ufs.map((estado) => {
       return estado.id;
     });
-    // const response1 = await this.$axios.$get("/samples-ids");
-    // this.ids = response1.Ids;
+    const response1 = await this.$axios.$get("/samples-names");
+    this.nomes = response1.nomes;
+
     // const response2 = await this.$axios.$get(
     //   `/samples?limit=${this.itemsPerPage}&offset=0`
     // );

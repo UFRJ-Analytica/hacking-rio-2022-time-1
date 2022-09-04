@@ -133,3 +133,22 @@ def submit_sample():
     return {
         "status": 200
     }
+
+
+
+# Get all samples names
+@server.get("/samples-names")
+def samples_names():
+    samples_list = []
+  
+    with Session(database) as session:
+        results = session.query(
+            model.classes.tartaruga
+        ).all()
+
+    for sample in results:
+        samples_list.append(sample.nome)
+    samples_list.sort()
+    return {
+        "nomes": samples_list
+    }
