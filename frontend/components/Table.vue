@@ -160,27 +160,10 @@ export default {
 
         { text: "Data do encontro", value: "data", align: "center" },
       ],
-      items: [
-        {
-          id: "1",
-          nome: "Rafael",
-          cidade: "Rio de Janeiro",
-          estado: "Rio de Janeiro",
-          data: "11/11/2011"
-        },
-        {
-          id: "2",
-          nome: "Ana",
-          cidade: "Santa Catarina",
-
-          estado: "Rio de Janeiro",
-          data: "11/11/2011"
-        },
-      ],
+      items: [],
     };
   },
   async mounted() {
-  
     const ufs = await this.$axios.$get(
       "https://servicodados.ibge.gov.br/api/v1/localidades/estados"
     );
@@ -194,26 +177,25 @@ export default {
     const response1 = await this.$axios.$get("/samples-names");
     this.nomes = response1.nomes;
 
-    // const response2 = await this.$axios.$get(
-    //   `/samples?limit=${this.itemsPerPage}&offset=0`
-    // );
-    // this.pageCount = Math.ceil(response2.Count / this.itemsPerPage);
-    // this.items = response2.Samples.map((item) => {
-    //   const date = new Date(item.photo_date.slice(0, -4));
-    //   const formattedDate = `${date.getDate()}/${
-    //     date.getMonth() + 1
-    //   }/${date.getFullYear()}`;
-    //   return {
-    //     id: item.id,
-    //     v: item.vector,
-    //     p: item.pathogen,
-    //     data: formattedDate,
-    //     status: this.legenda[item.status - 1],
-    //   };
-    // });
+    const response2 = await this.$axios.$get(
+      `/samples?limit=${this.itemsPerPage}&offset=0`
+    );
+    this.pageCount = Math.ceil(response2.Count / this.itemsPerPage);
+    this.items = response2.Samples.map((item) => {
+      const date = new Date(item.data.slice(0, -4));
+      const formattedDate = `${date.getDate()}/${
+        date.getMonth() + 1
+      }/${date.getFullYear()}`;
+
+      return {
+        nome: item.nome,
+        estado: item.estado,
+        cidade: item.cidade,
+        data: formattedDate,
+      };
+    });
   },
   methods: {
-
     async onSelectState() {
       this.show_municipios = true;
       const index = this.estados.indexOf(this.estado);
@@ -234,30 +216,25 @@ export default {
       this.indicadorMUN = mun;
     },
     async readTableData() {
-      // const response = await this.$axios.$get(
-      //   `/samples?limit=${this.itemsPerPage}&offset=${
-      //     (this.page - 1) * this.itemsPerPage
-      //   }`
-      // );
-      // this.items = response.Samples.map((item) => {
-      //   const date = new Date(item.photo_date.slice(0, -4));
-      //   const formattedDate = `${date.getDate()}/${
-      //     date.getMonth() + 1
-      //   }/${date.getFullYear()}`;
-      //   return {
-      //     id: item.id,
-      //     v: item.vector,
-      //     p: item.pathogen,
-      //     data: formattedDate,
-      //     status: this.legenda[item.status - 1],
-      //   };
-      // });
-      // this.pageCount = Math.ceil(response.Count / this.itemsPerPage);
-    },
-    allowedDates(val) {
-      // const listVal = val.split("-");
-      // const StringVal = `${listVal[2]}/${listVal[1]}/${listVal[0]}`;
-      // return this.databaseItems.map((item) => item.data).includes(StringVal);
+      const response = await this.$axios.$get(
+        `/samples?limit=${this.itemsPerPage}&offset=${
+          (this.page - 1) * this.itemsPerPage
+        }`
+      );
+      this.items = response.Samples.map((item) => {
+        const date = new Date(item.data.slice(0, -4));
+        const formattedDate = `${date.getDate()}/${
+          date.getMonth() + 1
+        }/${date.getFullYear()}`;
+
+        return {
+          nome: item.nome,
+          estado: item.estado,
+          cidade: item.cidade,
+          data: formattedDate,
+        };
+      });
+      this.pageCount = Math.ceil(response.Count / this.itemsPerPage);
     },
     onSelectedName() {
       // this.date = "";

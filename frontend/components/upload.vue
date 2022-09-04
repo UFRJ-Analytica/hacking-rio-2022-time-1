@@ -25,7 +25,7 @@
           <v-row>
             <v-col>
               <p>Tartaruga</p>
-              <my-image-cropper
+              <my-image-cropper 
                 v-model="turtle"
                 :width="180"
                 :height="180"
@@ -33,7 +33,7 @@
             </v-col>
             <v-col>
               <p>Cabeça</p>
-              <my-image-cropper
+              <my-image-cropper 
                 v-model="turtlehead"
                 :width="180"
                 :height="180"
@@ -86,6 +86,10 @@ export default {
   methods: {
     close (){
       this.dialog = false
+      this.turtle.remove()
+
+      this.turtlehead.remove()
+      this.dateKey += 1
       this.turtle_name = ""
     },
     save() {
@@ -97,10 +101,10 @@ export default {
           photo2: this.turtlehead.generateDataUrl().replace("data:image/png;base64,", ""),
       });
       this.turtle_name = ""
-      this.turtle = {}
-      this.turtlehead = {}
+      this.turtle.remove()
+      this.turtlehead.remove()
       this.date =  new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString()
-
+      this.dateKey += 1
 
     },
   },
