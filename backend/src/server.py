@@ -113,13 +113,12 @@ def submit_sample():
     
     with Session(database) as session:
         teste="teste"
-
         try:
             session.add(
                 model.classes.encontro(
                     tartaruga_identificador=obj.identificador,
-                    latitude="30.2",
-                    longitude="50.32",
+                    latitude="-22.90120000",
+                    longitude="-43.10230000",
                     imagem_corpo=imagem_corpo,
                     imagem_cabeca=imagem_cabeca,
                     data=request_data["photo_date"]
@@ -134,6 +133,58 @@ def submit_sample():
         "status": 200
     }
 
+
+
+# Check all samples in database
+@server.get("/samples")
+def log_sample():
+    samples_list = []
+    with Session(database) as session:
+        results = session.query(
+            model.classes.encontro
+        ).order_by(
+            model.classes.encontro.identificador.desc()
+        ).limit(
+            request.args.get('limit')
+        ).offset(request.args.get('offset')).all()
+        count = session.query(
+            model.classes.encontro
+        ).count()
+
+        for sample in results:
+            samples_list.append({
+                "id": sample.tartaruga_identificador,
+                "latitude": sample.latitude,
+                "longitude": sample.longitude,
+                "data": sample.data       
+            })
+
+        for sample in samples_list:
+            result = session.query(
+                model.classes.tartaruga.nome
+            ).filter(model.classes.tartaruga.identificador == sample['id']).first()
+                    
+            query = {
+                'latitude':  sample['latitude'],
+                'longitude': sample['longitude']
+            }
+            geodecoding = requests.get("https://api.bigdatacloud.net/data/reverse-geocode-client", params=query)
+
+            sample['nome'] = result.nome
+            try:
+                for adm in geodecoding.json()['localityInfo']['administrative']:
+                    if adm['adminLevel'] == 4:
+                        sample['estado'] = adm['name']
+                    if adm['adminLevel'] == 8:
+                        sample['cidade'] = adm['name']
+            except:
+                sample['estado'] = "indefinido"
+                sample['cidade'] = "indefinido"
+
+    return {
+        "Samples": samples_list,
+        "Count": count
+    }
 
 
 # Get all samples names
