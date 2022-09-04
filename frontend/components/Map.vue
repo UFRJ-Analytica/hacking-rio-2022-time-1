@@ -84,15 +84,12 @@
                 },
             }
         },
-        created() {
-                        
+        created() {        
             this.$geolocation.getCurrentPosition({})
                 .then(position => {
                     this.myCoordinates = position.coords;
-                    console.log("Coords", position.coords);
                 })
                 .catch(error => console.log(error));
-
         }
     }
 </script>
