@@ -5,7 +5,7 @@ export default {
   
   head: {
     titleTemplate: '',
-    title: 'Vale a Pena Conservar',
+    title: 'Turtle Head',
     htmlAttrs: {
       lang: 'en'
     },

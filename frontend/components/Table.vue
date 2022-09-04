@@ -37,7 +37,7 @@
           <template v-slot:[`item.nome`]="{ item }">
             <NuxtLink
               :to="{
-                path: `/turtle/${item.nome.toLowerCase()}`,
+                path: `/turtle/${item.nome}`,
               }"
             >
               {{ item.nome }}
@@ -140,11 +140,21 @@ export default {
       indicadorUF: 0,
       indicadorMUN: 0,
       show_municipios: false,
-
-      page: 1,
-      filter: false,
+      //controle de páginas
       pageCount: 3,
       itemsPerPage: 5,
+      pags: {},
+      headers: [
+        { text: "Nome", value: "nome", align: "center" },
+        { text: "Cidade", value: "cidade", align: "center" },
+        { text: "Estado", value: "estado", align: "center" },
+        { text: "Data do encontro", value: "data", align: "center" },
+      ],
+      items: [],
+
+      //controle de filtro
+      page: 1,
+      filter: false,
       dialog: false,
       status: null,
       dateKey: 0,
@@ -152,15 +162,6 @@ export default {
       nome: "",
       menu: false,
       nomes: [],
-      pags: {},
-      headers: [
-        { text: "Nome", value: "nome", align: "center" },
-        { text: "Cidade", value: "cidade", align: "center" },
-        { text: "Estado", value: "estado", align: "center" },
-
-        { text: "Data do encontro", value: "data", align: "center" },
-      ],
-      items: [],
     };
   },
   async mounted() {
@@ -241,58 +242,47 @@ export default {
       // this.dateKey += 1;
     },
     closeFilter() {
-      // this.filter = false
-      // this.ID = "";
-      // this.date = "";
-      // this.status = null;
-      // this.dateKey += 1;
-      // this.itemsPerPage = 5
-      // this.readTableData();
+      this.filter = false
+      this.nome = "";
+      this.date = "";
+      this.estado = "";
+      this.cidade = "";
+      this.dateKey += 1;
+      this.itemsPerPage = 5
+      this.readTableData();
     },
     async save() {
-      // this.filter = true
-      // if (this.ID) {
-      //   const response = await this.$axios.$get(`/samples-info?id=${this.ID}`);
-      //   const date = new Date(response.photo_date.slice(0, -4));
-      //   const formattedDate = `${date.getDate()}/${
-      //     date.getMonth() + 1
-      //   }/${date.getFullYear()}`;
-      //   this.items = [
-      //     {
-      //       id: this.ID,
-      //       v: response.vector,
-      //       p: response.pathogen,
-      //       data: formattedDate,
-      //       status: this.legenda[response.status - 1],
-      //     },
-      //   ];
-      // }
-      // if (this.status || this.date) {
-      //   const statusKey =  this.status ?  this.legenda.indexOf(this.status) + 1 : 0
-      //   const response = await this.$axios.$post(
-      //     `/filter-samples`,
-      //     {
-      //       "status": statusKey,
-      //       "date_range": this.date
-      //     }
-      //   );
-      //   this.items = response.Samples.map((item) => {
-      //     const date = new Date(item.photo_date.slice(0, -4));
-      //     const formattedDate = `${date.getDate()}/${
-      //       date.getMonth() + 1
-      //     }/${date.getFullYear()}`;
-      //     return {
-      //       id: item.id,
-      //       v: item.vector,
-      //       p: item.pathogen,
-      //       data: formattedDate,
-      //       status: this.legenda[item.status - 1],
-      //     };
-      //   });
-      //   this.itemsPerPage = this.items.length
-      // }
-      // this.pageCount = 1;
-      // this.dialog = false;
+      this.filter = true;
+      this.dialog = false;
+      let filterDict = {};
+      filterDict['nome'] = this.nome 
+      filterDict['date'] = this.date
+      filterDict['cidade'] = this.municipio
+      filterDict['estado'] = this.estado
+
+
+
+ 
+
+      const response = await this.$axios.$post(`/filter-samples`, filterDict);
+
+      this.items = response.Samples.map((item) => {
+        const date = new Date(item.data.slice(0, -4));
+        const formattedDate = `${date.getDate()}/${
+          date.getMonth() + 1
+        }/${date.getFullYear()}`;
+
+        return {
+          nome: item.nome,
+          estado: item.estado,
+          cidade: item.cidade,
+          data: formattedDate,
+        };
+      });
+      this.itemsPerPage = this.items.length;
+
+      this.pageCount = 1;
+      
     },
   },
 };

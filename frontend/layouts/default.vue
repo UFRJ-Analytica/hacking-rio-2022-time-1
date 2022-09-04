@@ -27,7 +27,7 @@
         
 
         <v-toolbar-title style="color: white">
-        TurtleHead
+        Turtle Head
         </v-toolbar-title>
 
 

@@ -6,5 +6,7 @@ python-dotenv==0.19.2
 sqlalchemy==1.4.27
 pyjwt==2.3.0
 requests==2.26.0
-opencv-python==4.6.0.66
+opencv-python-headless==4.6.0.66
 Pillow==9.2.0
+matplotlib==3.5.1
+imageio==2.21.2

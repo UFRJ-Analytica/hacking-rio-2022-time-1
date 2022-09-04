@@ -98,18 +98,20 @@ def check_similarities(imagem_cabeca):
     best_matches = []
     best_matches_identificadores = []
     for sample in results:
-        imagem_cabeca_outra = b64decode(sample.imagem_cabeca)
-        total_matches = contour_matching(imagem_cabeca, imagem_cabeca_outra)
-
-        threshold = 60
-        if total_matches > threshold:
-            best_matches.append(total_matches)
+        imagem_cabeca_outra = sample.ultima_imagem_cabeca
+        d2 = contour_matching(imagem_cabeca, imagem_cabeca_outra)
+        if d2 <= 0.1:
+            best_matches.append(d2)
             best_matches_identificadores.append(sample.identificador)
+        # threshold = 60
+        # if total_matches > threshold:
+        #     best_matches.append(total_matches)
+        #     best_matches_identificadores.append(sample.identificador)
 
     if len(best_matches) == 0:
         return None
     else:
-        idx = np.argmax(best_matches)
+        idx = np.argmin(best_matches)
         return best_matches_identificadores[idx]
     
 def insert_new_turtle(request_data):
@@ -117,7 +119,7 @@ def insert_new_turtle(request_data):
         obj =  model.classes.tartaruga(
                    nome=request_data["turtle_name"],
                    ultimo_encontro=request_data["photo_date"],
-                   forma="[1, 2, 3]",
+                   ultima_imagem_cabeca=b64encode(b64decode(request_data['photo2']))
                 )
         try:
             session.add(
@@ -137,21 +139,42 @@ def submit_sample():
     request_data =  request.json
     imagem_corpo = b64encode(b64decode(request_data['photo1']))
     imagem_cabeca = b64encode(b64decode(request_data['photo2']))
-
+    
     mais_similar = check_similarities(imagem_cabeca)
-
+    # mais_similar = None
     if mais_similar is None:
         tartaruga_identificador = insert_new_turtle(request_data)
     else:
         tartaruga_identificador = mais_similar
+
+    latitude = request_data['latitude']
+    longitude = request_data['longitude']
+
+    query = {
+        'latitude': latitude,
+        'longitude': longitude
+    }
+    geodecoding = requests.get("https://api.bigdatacloud.net/data/reverse-geocode-client", params=query)
+    try:
+        for adm in geodecoding.json()['localityInfo']['administrative']:
+            if adm['adminLevel'] == 4:
+                estado = adm['name']
+            if adm['adminLevel'] == 8:
+                cidade = adm['name']
+    except:
+        estado = "indefinido"
+        cidade = "indefinido"
+
 
     with Session(database) as session:
         try:
             session.add(
                 model.classes.encontro(
                     tartaruga_identificador=tartaruga_identificador,
-                    latitude="-22.90120000",
-                    longitude="-43.10230000",
+                    latitude=latitude,
+                    longitude=longitude,
+                    cidade=cidade,
+                    estado=estado,
                     imagem_corpo=imagem_corpo,
                     imagem_cabeca=imagem_cabeca,
                     data=request_data["photo_date"]
@@ -166,7 +189,14 @@ def submit_sample():
     if mais_similar is None:
         return {"status": 200}
     else:
-        return {"status": 403}
+        result = session.query(
+            model.classes.tartaruga.nome
+        ).filter( model.classes.tartaruga.identificador == mais_similar).first()
+
+        return {
+            "detail": 102,
+            "error": f"Esta tartaruga já existe e se chama {result.nome}"
+        }, 400
 
 
 # Check all samples in database
@@ -190,6 +220,8 @@ def log_sample():
                 "id": sample.tartaruga_identificador,
                 "latitude": sample.latitude,
                 "longitude": sample.longitude,
+                "cidade": sample.cidade,
+                "estado": sample.estado,
                 "data": sample.data       
             })
 
@@ -197,23 +229,8 @@ def log_sample():
             result = session.query(
                 model.classes.tartaruga.nome
             ).filter(model.classes.tartaruga.identificador == sample['id']).first()
-                    
-            query = {
-                'latitude':  sample['latitude'],
-                'longitude': sample['longitude']
-            }
-            geodecoding = requests.get("https://api.bigdatacloud.net/data/reverse-geocode-client", params=query)
-
             sample['nome'] = result.nome
-            try:
-                for adm in geodecoding.json()['localityInfo']['administrative']:
-                    if adm['adminLevel'] == 4:
-                        sample['estado'] = adm['name']
-                    if adm['adminLevel'] == 8:
-                        sample['cidade'] = adm['name']
-            except:
-                sample['estado'] = "indefinido"
-                sample['cidade'] = "indefinido"
+            
 
     return {
         "Samples": samples_list,
@@ -237,4 +254,80 @@ def samples_names():
     
     return {
         "nomes": samples_list
+    }
+
+
+
+@server.post("/filter-samples")
+def filter_sample():
+    samples_list = []
+    request_data =  request.json
+    date_range = request_data['date']
+    selected_name =  request_data['nome']
+    selected_city =  request_data['cidade']
+    selected_state =  request_data['estado']
+
+
+    with Session(database) as session:
+
+        partial_result = session.query(model.classes.encontro)
+        result = session.query(
+                model.classes.tartaruga.identificador
+            ).filter(model.classes.tartaruga.nome == selected_name).first()
+
+        if selected_name:
+            partial_result = partial_result.filter(
+                model.classes.encontro.tartaruga_identificador == result.identificador
+            )
+
+        if date_range:
+            if len(date_range) == 2:
+                first_date = date_range[0]
+                last_date = date_range[1]
+                if first_date:
+                    partial_result = partial_result.filter(
+                        model.classes.encontro.data.between(first_date, last_date)
+                    )
+                else:
+                    partial_result = partial_result.filter(
+                        model.classes.encontro.data <= date_range[1]
+                    )
+            else:
+                partial_result = partial_result.filter(
+                    model.classes.encontro.data == date_range[0]
+                )
+        if selected_city:
+            partial_result = partial_result.filter(
+                model.classes.encontro.cidade == selected_city
+            )
+        if selected_state:
+            partial_result = partial_result.filter(
+                model.classes.encontro.estado == selected_state
+            )
+
+
+        results = partial_result.all()
+
+        for sample in results:
+            samples_list.append({
+                "id": sample.identificador,
+                "latitude": sample.latitude,
+                "cidade" :sample.cidade,
+                "estado": sample.estado,
+                "longitude": sample.longitude,
+                "tartaruga_identificador": sample.tartaruga_identificador,
+                "imagem_corpo": f"{sample.imagem_corpo}",
+                "imagem_cabeca": f"{sample.imagem_cabeca}",
+                "data": sample.data   
+            })
+
+        for sample in samples_list:
+            result = session.query(
+                model.classes.tartaruga.nome
+            ).filter(model.classes.tartaruga.identificador == sample['tartaruga_identificador']).first()
+            sample['nome'] = result.nome
+        
+    return {
+        "Samples": samples_list,
+        # "Nome": result.nome
     }
